@@ -3,6 +3,7 @@
 	name = "Азимов"
 	law_header = "Три закона роботехники"
 	selectable = TRUE
+	default = TRUE
 
 /datum/ai_laws/asimov/New()
 	add_inherent_law("Вы не можете причинить вред человеку или своим бездействием допустить, чтобы человеку был причинён вред.")
