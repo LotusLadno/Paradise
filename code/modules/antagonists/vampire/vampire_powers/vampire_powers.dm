@@ -221,10 +221,8 @@
 	T.range = 1
 	return T
 
-
 /obj/effect/proc_holder/spell/vampire/glare/valid_target(mob/living/target, mob/user)
 	return !isnull(target.mind) && target.stat != DEAD && target.affects_vampire(user)
-
 
 /obj/effect/proc_holder/spell/vampire/glare/create_new_cooldown()
 	var/datum/spell_cooldown/charges/C = new
@@ -233,7 +231,10 @@
 	C.charge_duration = 3 SECONDS
 	return C
 
-
+/// Определяет слепую цель
+#define BLIND_TARGET 5
+/// Определяет затемнение экрана цели
+#define TINT_TARGET 4
 /// No deviation at all. Flashed from the front or front-left/front-right. Alternatively, flashed in direct view.
 #define DEVIATION_NONE 3
 /// Partial deviation. Flashed from the side. Alternatively, flashed out the corner of your eyes.
@@ -253,12 +254,22 @@
 
 	for(var/mob/living/target as anything in targets)
 		var/deviation
-		if(user.body_position == LYING_DOWN)
+
+		if(HAS_TRAIT(target, TRAIT_BLIND))
+			deviation = BLIND_TARGET
+		else if(target.get_total_tint() >= TINT_IMPAIR)
+			deviation = TINT_TARGET
+		else if(user.body_position == LYING_DOWN)
 			deviation = DEVIATION_PARTIAL
 		else
 			deviation = calculate_deviation(target, user)
 
-		if(deviation == DEVIATION_FULL)
+		if(deviation == BLIND_TARGET)
+			to_chat(user, span_warning("[target] не реагирует на ваш взгляд"))
+		else if(deviation == TINT_TARGET)
+			target.Confused(5 SECONDS)
+
+		else if(deviation == DEVIATION_FULL)
 			target.Confused(6 SECONDS)
 			target.apply_damage(30, STAMINA)
 
@@ -309,6 +320,8 @@
 	// Victim lateral to the victim.
 	return DEVIATION_PARTIAL
 
+#undef BLIND_TARGET
+#undef TINT_TARGET
 #undef DEVIATION_NONE
 #undef DEVIATION_PARTIAL
 #undef DEVIATION_FULL
